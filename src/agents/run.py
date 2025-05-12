@@ -669,6 +669,20 @@ class Runner:
         input = ItemHelpers.input_to_new_input_list(streamed_result.input)
         input.extend([item.to_input_item() for item in streamed_result.new_items])
 
+        # hack to fix image function calling
+        # image function calling is not natively supported by openai function calling
+        # this fork adds support by returning a hardcoded text response to image_function_tools
+        # and appends the actual response as a user image that follows that
+        # this doesn't work for the streaming version of the agent
+        # hack below fixes it
+        new_input = []
+        for item in input:
+            if isinstance(item, list):
+                new_input.extend(item)
+            else:
+                new_input.append(item)
+        input = new_input 
+
         # 1. Stream the output events
         async for event in model.stream_response(
             system_prompt,
