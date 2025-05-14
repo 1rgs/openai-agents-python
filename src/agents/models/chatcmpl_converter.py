@@ -40,7 +40,7 @@ from ..agent_output import AgentOutputSchemaBase
 from ..exceptions import AgentsException, UserError
 from ..handoffs import Handoff
 from ..items import TResponseInputItem, TResponseOutputItem
-from ..tool import FunctionTool, Tool
+from ..tool import FunctionTool, ImageFunctionTool, Tool
 from .fake_id import FAKE_RESPONSES_ID
 
 
@@ -440,6 +440,16 @@ class Converter:
     @classmethod
     def tool_to_openai(cls, tool: Tool) -> ChatCompletionToolParam:
         if isinstance(tool, FunctionTool):
+            return {
+                "type": "function",
+                "function": {
+                    "name": tool.name,
+                    "description": tool.description or "",
+                    "parameters": tool.params_json_schema,
+                },
+            }
+        
+        if isinstance(tool, ImageFunctionTool):
             return {
                 "type": "function",
                 "function": {
